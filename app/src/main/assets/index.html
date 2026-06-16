@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>训练秒表</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #111111;
+      --sub: #6b7280;
+      --line: #e5e7eb;
+      --primary: #111111;
+      --secondary: #f3f4f6;
+      --danger: #ef4444;
+      --shadow: 0 10px 30px rgba(17, 17, 17, 0.06);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 18px;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 560px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 20px 18px 18px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--sub);
+      margin: 0 0 18px;
+    }
+
+    .main-time-label {
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 8px;
+    }
+
+    .main-time {
+      font-size: 42px;
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      word-break: break-all;
+      margin-bottom: 18px;
+    }
+
+    .status-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 16px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9ca3af;
+    }
+
+    .dot.running { background: #16a34a; }
+    .dot.paused { background: #f59e0b; }
+    .dot.ready { background: #9ca3af; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 18px;
+      background: #fafafa;
+      border: 1px solid var(--line);
+      min-height: 88px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .controls {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      min-height: 54px;
+      border-radius: 18px;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 12px;
+      color: var(--text);
+      background: var(--secondary);
+      border: 1px solid var(--line);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    button.danger {
+      background: #fff5f5;
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+    }
+
+    .records {
+      padding: 16px 14px 14px;
+    }
+
+    .records-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .records-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .records-count {
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .record-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 34vh;
+      overflow: auto;
+    }
+
+    .record-item {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #fafafa;
+      border: 1px solid var(--line);
+    }
+
+    .record-index {
+      font-size: 12px;
+      color: var(--sub);
+      padding-top: 3px;
+    }
+
+    .record-time {
+      font-size: 15px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .empty {
+      padding: 18px 12px;
+      text-align: center;
+      color: var(--sub);
+      font-size: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: #fcfcfc;
+    }
+
+    @media (max-width: 420px) {
+      .main-time { font-size: 36px; }
+      .stat-value { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="card hero">
+      <h1 class="page-title">训练秒表</h1>
+      <p class="page-subtitle">适合运动训练时记录开始、暂停、继续与节点。</p>
+
+      <div class="main-time-label">总计时</div>
+      <div id="totalTimer" class="main-time">00:00:00.000</div>
+
+      <div class="status-row">
+        <span id="statusDot" class="dot ready"></span>
+        <span id="statusText">未开始</span>
+      </div>
+
+      <div class="grid">
+        <div class="stat">
+          <div class="stat-label">总开始时间</div>
+          <div id="globalStartTime" class="stat-value">00:00:00.000</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">当前开始时间</div>
+          <div id="currentStartTime" class="stat-value">00:00:00.000</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">当前暂停时间</div>
+          <div id="currentPauseTime" class="stat-value">00:00:00.000</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">总暂停时间</div>
+          <div id="totalPauseTime" class="stat-value">00:00:00.000</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <button id="startBtn" class="primary">开始</button>
+      <button id="pauseResumeBtn" disabled>暂停</button>
+      <button id="lapBtn" disabled>添加节点</button>
+      <button id="resetBtn" class="danger">重置</button>
+    </section>
+
+    <section class="card records">
+      <div class="records-head">
+        <div class="records-title">节点记录</div>
+        <div id="recordCount" class="records-count">0 条</div>
+      </div>
+      <div id="recordList" class="record-list">
+        <div id="emptyState" class="empty">点击“开始”后可以训练，点击“添加节点”可记录当前总计时。</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const totalTimerEl = document.getElementById('totalTimer');
+    const globalStartTimeEl = document.getElementById('globalStartTime');
+    const currentStartTimeEl = document.getElementById('currentStartTime');
+    const currentPauseTimeEl = document.getElementById('currentPauseTime');
+    const totalPauseTimeEl = document.getElementById('totalPauseTime');
+    const statusDotEl = document.getElementById('statusDot');
+    const statusTextEl = document.getElementById('statusText');
+
+    const startBtn = document.getElementById('startBtn');
+    const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const recordListEl = document.getElementById('recordList');
+    const emptyStateEl = document.getElementById('emptyState');
+    const recordCountEl = document.getElementById('recordCount');
+
+    let hasStarted = false;
+    let isRunning = false;
+    let totalStartAt = null;
+    let currentStartAt = null;
+    let pausedAt = null;
+    let accumulatedRunTime = 0;
+    let accumulatedPauseTime = 0;
+    let records = [];
+
+    function pad(num, len = 2) {
+      return String(num).padStart(len, '0');
+    }
+
+    function formatClock(ms) {
+      const safe = Math.max(0, ms || 0);
+      const h = Math.floor(safe / 3600000);
+      const m = Math.floor((safe % 3600000) / 60000);
+      const s = Math.floor((safe % 60000) / 1000);
+      const mm = safe % 1000;
+      return `${pad(h)}:${pad(m)}:${pad(s)}.${pad(mm, 3)}`;
+    }
+
+    function formatDuration(ms) {
+      const safe = Math.max(0, ms || 0);
+      const h = Math.floor(safe / 3600000);
+      const m = Math.floor((safe % 3600000) / 60000);
+      const s = Math.floor((safe % 60000) / 1000);
+      const mm = safe % 1000;
+      return `${pad(h)}:${pad(m)}:${pad(s)}.${pad(mm, 3)}`;
+    }
+
+    function getTotalElapsed() {
+      if (!hasStarted) return 0;
+      const runningPart = isRunning && currentStartAt ? Date.now() - currentStartAt : 0;
+      return accumulatedRunTime + runningPart;
+    }
+
+    function getCurrentPauseElapsed() {
+      if (pausedAt && !isRunning) {
+        return Date.now() - pausedAt;
+      }
+      return 0;
+    }
+
+    function getTotalPauseElapsed() {
+      return accumulatedPauseTime + getCurrentPauseElapsed();
+    }
+
+    function getGlobalStartElapsed() {
+      if (!hasStarted || !totalStartAt) return 0;
+      if (isRunning) return Date.now() - totalStartAt;
+      return pausedAt ? pausedAt - totalStartAt : 0;
+    }
+
+    function getCurrentStartElapsed() {
+      if (!hasStarted || !currentStartAt || !isRunning) return 0;
+      return Date.now() - currentStartAt;
+    }
+
+    function setStatus(type, text) {
+      statusDotEl.className = `dot ${type}`;
+      statusTextEl.textContent = text;
+    }
+
+    function renderRecords() {
+      recordCountEl.textContent = `${records.length} 条`;
+      recordListEl.querySelectorAll('.record-item').forEach(el => el.remove());
+
+      if (!records.length) {
+        emptyStateEl.style.display = 'block';
+        return;
+      }
+
+      emptyStateEl.style.display = 'none';
+
+      records.slice().reverse().forEach((item, index) => {
+        const actualIndex = records.length - index;
+        const node = document.createElement('div');
+        node.className = 'record-item';
+        node.innerHTML = `
+          <div class="record-index">节点 ${actualIndex}</div>
+          <div class="record-time">${item}</div>
+        `;
+        recordListEl.appendChild(node);
+      });
+    }
+
+    function render() {
+      totalTimerEl.textContent = formatDuration(getTotalElapsed());
+      totalPauseTimeEl.textContent = formatDuration(getTotalPauseElapsed());
+      currentPauseTimeEl.textContent = formatDuration(getCurrentPauseElapsed());
+      globalStartTimeEl.textContent = formatClock(getGlobalStartElapsed());
+      currentStartTimeEl.textContent = formatClock(getCurrentStartElapsed());
+    }
+
+    function updateButtons() {
+      startBtn.disabled = hasStarted;
+      pauseResumeBtn.disabled = !hasStarted;
+      lapBtn.disabled = !hasStarted;
+
+      if (!hasStarted) {
+        pauseResumeBtn.textContent = '暂停';
+        pauseResumeBtn.classList.remove('primary');
+        return;
+      }
+
+      pauseResumeBtn.textContent = isRunning ? '暂停' : '继续';
+      pauseResumeBtn.classList.toggle('primary', !isRunning);
+    }
+
+    function startTraining() {
+      if (hasStarted) return;
+      const now = Date.now();
+      hasStarted = true;
+      isRunning = true;
+      totalStartAt = now;
+      currentStartAt = now;
+      pausedAt = null;
+      accumulatedRunTime = 0;
+      accumulatedPauseTime = 0;
+      setStatus('running', '训练中');
+      updateButtons();
+      render();
+    }
+
+    function pauseTraining() {
+      if (!hasStarted || !isRunning || !currentStartAt) return;
+      const now = Date.now();
+      accumulatedRunTime += now - currentStartAt;
+      pausedAt = now;
+      currentStartAt = null;
+      isRunning = false;
+      setStatus('paused', '已暂停');
+      updateButtons();
+      render();
+    }
+
+    function resumeTraining() {
+      if (!hasStarted || isRunning || !pausedAt) return;
+      accumulatedPauseTime += Date.now() - pausedAt;
+      pausedAt = null;
+      currentStartAt = Date.now();
+      isRunning = true;
+      setStatus('running', '训练中');
+      updateButtons();
+      render();
+    }
+
+    function togglePauseResume() {
+      if (!hasStarted) return;
+      if (isRunning) pauseTraining();
+      else resumeTraining();
+    }
+
+    function addRecord() {
+      if (!hasStarted) return;
+      records.push(formatDuration(getTotalElapsed()));
+      renderRecords();
+    }
+
+    function resetAll() {
+      hasStarted = false;
+      isRunning = false;
+      totalStartAt = null;
+      currentStartAt = null;
+      pausedAt = null;
+      accumulatedRunTime = 0;
+      accumulatedPauseTime = 0;
+      records = [];
+      setStatus('ready', '未开始');
+      updateButtons();
+      renderRecords();
+      render();
+    }
+
+    function runTests() {
+      console.assert(formatClock(0) === '00:00:00.000', 'formatClock(0) 应为 00:00:00.000');
+      console.assert(formatClock(3723123) === '01:02:03.123', 'formatClock(3723123) 应为 01:02:03.123');
+      console.assert(formatDuration(0) === '00:00:00.000', 'formatDuration(0) 应为 00:00:00.000');
+      console.assert(formatDuration(3723123) === '01:02:03.123', 'formatDuration(3723123) 应为 01:02:03.123');
+      console.assert(formatDuration(-1) === '00:00:00.000', '负数时长应归零');
+    }
+
+    startBtn.addEventListener('click', startTraining);
+    pauseResumeBtn.addEventListener('click', togglePauseResume);
+    lapBtn.addEventListener('click', addRecord);
+    resetBtn.addEventListener('click', resetAll);
+
+    runTests();
+    resetAll();
+    setInterval(render, 31);
+  </script>
+</body>
+</html>
