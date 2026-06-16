@@ -1,15 +1,28 @@
 # 训练秒表
 
-一个最小化的 Android WebView 项目，用来把本地 `HTML` 秒表页面封装成安卓应用。
+一个极简 Android WebView 项目，用来把本地 HTML 秒表页面封装成可安装的安卓 APK。它的优势是体积轻、启动快、离线可用、无需 OBB，安装和分发都更简单。
 
-## 项目内容
+## 项目说明
 
 - 应用名称：`训练秒表`
 - 运行方式：离线本地 `WebView`
 - 页面入口：`app/src/main/assets/index.html`
-- 方向：竖屏
+- 屏幕方向：竖屏
+- 是否需要 OBB：不需要
 
-## 适合发布到 GitHub 的部分
+## 当前发布内容
+
+当前仓库已经包含：
+
+- Android 项目源码
+- 已发布的 GitHub Release
+- 可直接测试安装的 APK
+
+Release 页面：
+
+- [v1.0.0](https://github.com/hanghu5820/training-stopwatch-android/releases/tag/v1.0.0)
+
+## 适合提交到 GitHub 的内容
 
 建议提交这些内容：
 
@@ -20,6 +33,8 @@
 - `gradle.properties`
 - `proguard-rules.pro`
 - `.gitignore`
+- `LICENSE`
+- `README.md`
 
 不建议提交这些内容：
 
@@ -28,8 +43,9 @@
 - `build/`
 - `app/build/`
 - 已生成的 `apk`
+- 已生成的 `aab`
 
-## 本地打开
+## 本地打开方式
 
 1. 用 Android Studio 打开项目根目录。
 2. 等待 Gradle 同步完成。
@@ -47,6 +63,21 @@ sdk.dir=/path/to/your/android/sdk
 
 ## 说明
 
-这个仓库默认适合源码托管和测试包构建。
+这个仓库适合：
 
-如果要对外正式分发，建议另外生成一个 `release APK`，并配置你自己的签名信息。
+- 源码托管
+- 本地调试
+- 测试包构建
+- GitHub 发布
+
+当前 Release 中提供的是测试用途的 APK。
+
+如果后续要正式对外分发，建议另外生成：
+
+- `release APK`
+- 正式签名包
+- 对应版本号的发布记录
+
+## License
+
+本项目使用 `MIT License`。
