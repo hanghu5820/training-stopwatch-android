@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local SDK config
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# APK / AAB outputs
+*.apk
+*.aab
+
+# macOS
+.DS_Store
